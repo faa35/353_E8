@@ -4,6 +4,16 @@ import matplotlib.pyplot as plt
 from skimage.color import lab2rgb
 import sys
 
+from skimage.color import rgb2lab
+from skimage.color import rgb2hsv
+
+from sklearn.model_selection import train_test_split
+from sklearn.naive_bayes import GaussianNB
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.preprocessing import FunctionTransformer
+
+from sklearn.pipeline import make_pipeline
 
 OUTPUT_TEMPLATE = (
     'Bayesian classifier:     {bayes_rgb:.3f}  {bayes_convert:.3f}\n'
@@ -70,13 +80,55 @@ def plot_predictions(model, lum=67, resolution=300):
     plt.xlabel('A')
     plt.imshow(pixels)
 
+# rgb shape (n, 3), values 0-1, 
+# convert to lab shape (n, 3)
+def rgb_to_lab(X):
+
+    return rgb2lab(X.reshape(1, -1, 3)).reshape(-1, 3)
+
+# same just convert to hsv
+def rgb_to_hsv(X):
+
+    return rgb2hsv(X.reshape(1, -1, 3)).reshape(-1, 3)
+
 
 def main():
     data = pd.read_csv(sys.argv[1])
-    X = data[['R', 'G', 'B']].values / 255
-    y = data['Label'].values
+    X = data[['R', 'G', 'B']].to_numpy() / 255  # array with shape (n, 3), components 0-1
+    y = data['Label'].to_numpy(dtype=str)  # array with shape (n,) of colour words
 
-    # TODO: create some models
+    X_train, X_valid, y_train, y_valid = train_test_split(X, y)
+
+    #apart from course i did try to implement from: https://scikit-learn.org/stable/modules/compose.html
+    
+    # naive Bayes on the RGB values directly, and converted to LAB
+    bayes_rgb_model = GaussianNB()
+
+    bayes_convert_model = make_pipeline(
+        FunctionTransformer(rgb_to_lab, validate=True),
+        GaussianNB()
+    )
+    
+
+    # assignment description: In LAB colour, distances make sense; 
+    # in HSV colour, there is an axis “hue” that seems quite related to the predictions we're making and might be more useful for some models to work with.
+
+    #k nearest neighburs: 
+    # so LAB works best here, where euclidean distance
+    # between colours  we use
+    knn_rgb_model = KNeighborsClassifier(n_neighbors=8)
+    knn_convert_model = make_pipeline(
+        FunctionTransformer(rgb_to_lab, validate=True),
+        KNeighborsClassifier(n_neighbors=20, weights='distance')
+    )
+
+    # random forest: 
+    # HSV works best here, we split the trees on the hue axis
+    rf_rgb_model = RandomForestClassifier(n_estimators=200, min_samples_leaf=3)
+    rf_convert_model = make_pipeline(
+        FunctionTransformer(rgb_to_hsv, validate=True),
+        RandomForestClassifier(n_estimators=200, min_samples_leaf=3)
+    )
 
     # train each model and output image of predictions
     models = [bayes_rgb_model, bayes_convert_model, knn_rgb_model, knn_convert_model, rf_rgb_model, rf_convert_model]

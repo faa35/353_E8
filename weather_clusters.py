@@ -6,6 +6,9 @@ import sys
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import MinMaxScaler
 
+from sklearn.decomposition import PCA
+from sklearn.cluster import KMeans
+
 
 def get_pca(X):
     """
@@ -13,6 +16,8 @@ def get_pca(X):
     """
     flatten_model = make_pipeline(
         # TODO
+        MinMaxScaler(),
+        PCA(n_components=2)
     )
     X2 = flatten_model.fit_transform(X)
     assert X2.shape == (X.shape[0], 2)
@@ -25,6 +30,8 @@ def get_clusters(X):
     """
     model = make_pipeline(
         # TODO
+        MinMaxScaler(),
+        KMeans(n_clusters=9)
     )
     model.fit(X)
     return model.predict(X)
@@ -33,9 +40,9 @@ def get_clusters(X):
 def main():
     data = pd.read_csv(sys.argv[1])
 
-    X = # TODO
-    y = # TODO
-    
+    X = data.drop(columns=['city', 'year']).to_numpy()
+    y = data['city'].to_numpy(dtype=str)
+
     X2 = get_pca(X)
     clusters = get_clusters(X)
     plt.figure(figsize=(10, 6))

@@ -1,0 +1,30 @@
+PS D:\summer 26\cmpt 353\e8\e8_for_submission\e8> python3 .\colour_predict.py .\colour-data.csv                                           
+Bayesian classifier:     0.551  0.639
+kNN classifier:          0.742  0.746
+Rand forest classifier:  0.737  0.750
+
+
+
+1.
+my best model is random forest model with the converted colour. validation score is 0.750 
+kNN converted model was very close, 0.746, but both worked better than GaussianNB.
+
+I think random forest did well because colour labels do not have simple boundaries. 
+like, the difference between red, orange, pink, and brown is not just one simple rule
+A random forest can make many different splits and combine them. so it can learn aalot complicated colour regions. The converted colour helped. 
+LAB seemed useful for kNN because kNN depends on distance
+LAB is designed so that distances between colours are more meaningful.
+HSV also makes sense for colour prediction because the hue value is related to colour names like red, green, blue, and purple. 
+RGB still worked okay because it contains all the original colour information. but it is not always arranged in the most useful way for every model.
+
+2. 
+for here i used Standard scaler and a linear SVC. It scored about 0.81(0.8103448275862069) on the validation data. 
+When I looked at the wrong predictions, the mistakes seemed reasonable because the model was mostly confusing cities with similar weather patterns. 
+The clustering output also showed this like
+Vancouver
+Victoria
+Seattle 
+being grouped together, and warmer cities like Miami, New Orleans, Atlanta, and Raleigh Durham being grouped together.
+
+model could improve with more features like latitude, longitude, elevation, distance from the ocean, humidity, wind speed, number of rainy days, number of snow days, extreme values like hottest day or coldest day. 
+Monthly averages are useful, but they remove some daily details that could help separate similar cities.
